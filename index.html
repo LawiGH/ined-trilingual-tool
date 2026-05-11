@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InEd Trilingual Tool</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --forest:#1a3a2a;--forest2:#2d5c42;--forest3:#4a8c62;
+  --gold:#c8963c;--gold2:#e8b55a;
+  --bg:#ffffff;--bg2:#f5f5f2;--bg3:#eceae5;
+  --text:#1a1a18;--text2:#5a5a54;--text3:#9a9a92;
+  --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
+  --info-bg:#e6f1fb;--info-text:#0c447c;
+  --warn-bg:#fef9ec;--warn-text:#7a4a00;--warn-border:rgba(200,140,0,0.25);
+  --success-bg:#eaf3de;--success-text:#27500a;--success-border:rgba(74,140,98,0.3);
+  --danger:#c0392b;
+  --r:8px;--r-lg:12px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --shadow:0 1px 6px rgba(0,0,0,0.07);
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1c1f1d;--bg2:#252928;--bg3:#2f342f;
+  --text:#e2e8e2;--text2:#96a096;--text3:#586058;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);
+  --info-bg:#0d2a42;--info-text:#7ab4e8;
+  --warn-bg:#281e06;--warn-text:#f0b845;--warn-border:rgba(200,140,0,0.2);
+  --success-bg:#142208;--success-text:#8fbd50;--success-border:rgba(74,140,98,0.25);
+  --danger:#e05c5c;
+}}
+
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);background:var(--bg2);color:var(--text);font-size:14px;line-height:1.55;display:flex;flex-direction:column}
+
+/* ─── TOPBAR ─── */
+.topbar{
+  height:48px;flex-shrink:0;
+  background:var(--forest);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;
+  border-bottom:1px solid rgba(0,0,0,0.2);
+  z-index:100;
+}
+.tl{display:flex;align-items:center;gap:10px}
+.logo{width:26px;height:26px;background:var(--gold);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--forest);flex-shrink:0;letter-spacing:-.5px}
+.brand{font-size:13px;font-weight:600;color:#fff}
+.brand-sub{font-size:11px;color:rgba(255,255,255,0.45);margin-left:3px}
+.lpills{display:flex;gap:4px}
+.lp{font-size:11px;padding:2px 7px;border-radius:99px;background:rgba(255,255,255,0.09);color:rgba(255,255,255,0.65);border:1px solid rgba(255,255,255,0.1)}
+.tr{display:flex;align-items:center;gap:8px}
+.btn-hst{display:flex;align-items:center;gap:5px;padding:5px 11px;font-size:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:var(--r);color:rgba(255,255,255,0.75);cursor:pointer;transition:background .15s;font-family:var(--font)}
+.btn-hst:hover,.btn-hst.on{background:rgba(200,150,60,0.22);border-color:rgba(200,150,60,0.38);color:var(--gold2)}
+.hcnt{background:var(--gold);color:var(--forest);border-radius:99px;font-size:10px;font-weight:700;padding:1px 5px;min-width:15px;text-align:center}
+
+/* ─── API BANNER ─── */
+.api-banner{
+  flex-shrink:0;
+  background:var(--warn-bg);border-bottom:1px solid var(--warn-border);
+  padding:8px 16px;font-size:12px;color:var(--warn-text);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.api-banner.hidden{display:none}
+.api-row{display:flex;gap:6px;flex:1;min-width:240px}
+.api-inp{flex:1;height:30px;padding:0 9px;font-size:12px;border:1px solid var(--warn-border);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;font-family:monospace}
+.api-inp:focus{border-color:var(--gold)}
+.bsave{height:30px;padding:0 12px;font-size:12px;background:var(--forest);color:#fff;border:none;border-radius:var(--r);cursor:pointer;font-weight:500;font-family:var(--font)}
+.bclr{height:30px;padding:0 10px;font-size:12px;background:transparent;border:1px solid var(--border2);border-radius:var(--r);cursor:pointer;color:var(--text2);font-family:var(--font)}
+
+/* ─── BODY LAYOUT ─── */
+.body{display:flex;flex:1;overflow:hidden;position:relative}
+
+/* ─── SIDEBAR ─── */
+.sidebar{
+  width:268px;flex-shrink:0;
+  background:var(--bg);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+  position:absolute;top:0;bottom:0;left:0;z-index:50;
+  transform:translateX(-268px);transition:transform .22s ease;
+}
+.sidebar.open{transform:translateX(0);box-shadow:4px 0 16px rgba(0,0,0,0.1)}
+.sb-top{padding:11px 13px 9px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.sb-title{font-size:12px;font-weight:600;color:var(--text)}
+.btn-x{background:none;border:none;cursor:pointer;color:var(--text3);font-size:15px;padding:2px 4px;line-height:1;display:flex;align-items:center}
+.btn-x:hover{color:var(--text)}
+.sb-srch{padding:7px 11px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sb-srch input{width:100%;height:28px;padding:0 9px;font-size:12px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg2);color:var(--text);outline:none;font-family:var(--font)}
+.hlist{flex:1;overflow-y:auto}
+.hempty{padding:24px 13px;text-align:center;font-size:12px;color:var(--text3);line-height:1.7}
+.hi{padding:9px 13px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s}
+.hi:hover{background:var(--bg2)}
+.hi.active{background:var(--success-bg);border-left:3px solid var(--forest3);padding-left:10px}
+.hi-top{display:flex;justify-content:space-between;margin-bottom:2px}
+.hi-mode{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--forest3)}
+.hi-time{font-size:10px;color:var(--text3)}
+.hi-langs{font-size:11px;color:var(--text2);margin-bottom:2px}
+.hi-prev{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-foot{padding:9px 11px;border-top:1px solid var(--border);flex-shrink:0}
+.bclrhist{width:100%;padding:6px;font-size:12px;background:transparent;border:1px solid var(--border2);border-radius:var(--r);cursor:pointer;color:var(--danger);font-family:var(--font)}
+.bclrhist:hover{background:#fff0f0}
+
+/* ─── MAIN SCROLL AREA ─── */
+.main{flex:1;overflow-y:auto;transition:margin-left .22s}
+.inner{max-width:860px;margin:0 auto;padding:16px 16px 32px}
+
+/* ─── TABS ─── */
+.tabs{display:flex;gap:2px;background:var(--bg3);padding:3px;border-radius:var(--r);margin-bottom:16px;width:fit-content;border:1px solid var(--border)}
+.tab{padding:6px 16px;font-size:13px;border:none;background:none;cursor:pointer;border-radius:6px;color:var(--text2);transition:all .15s;font-family:var(--font);white-space:nowrap}
+.tab.active{background:var(--bg);color:var(--text);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.07);border:1px solid var(--border)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* ─── CONTROLS ─── */
+.crow{display:flex;gap:9px;margin-bottom:13px;flex-wrap:wrap;align-items:flex-end}
+.fg{display:flex;flex-direction:column;gap:3px}
+.fg label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+select{height:32px;padding:0 9px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);cursor:pointer;outline:none;min-width:110px;font-family:var(--font)}
+select:focus{border-color:var(--forest3)}
+.mtabs{display:flex;gap:2px;background:var(--bg3);padding:2px;border-radius:var(--r);border:1px solid var(--border)}
+.mt{padding:5px 12px;font-size:12px;border:none;background:none;cursor:pointer;border-radius:5px;color:var(--text2);transition:all .12s;font-family:var(--font)}
+.mt.active{background:var(--bg);color:var(--text);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.07);border:1px solid var(--border)}
+.swap{height:32px;padding:0 9px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);cursor:pointer;color:var(--text2);font-size:15px;align-self:flex-end}
+.swap:hover{background:var(--bg3)}
+
+/* ─── TOGGLES ─── */
+.toggles{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px}
+.tg{display:flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid var(--border2);border-radius:99px;cursor:pointer;font-size:12px;color:var(--text2);background:var(--bg);transition:all .12s;user-select:none}
+.tg.on{border-color:var(--forest3);color:var(--forest);background:var(--success-bg)}
+.tg-d{width:5px;height:5px;border-radius:50%;background:var(--border2)}
+.tg.on .tg-d{background:var(--forest3)}
+
+/* ─── PANELS ─── */
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+@media(max-width:580px){.panels{grid-template-columns:1fr}}
+.panel{border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;background:var(--bg);box-shadow:var(--shadow)}
+.phdr{padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.plbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.bdg{font-size:11px;padding:2px 7px;border-radius:99px;background:var(--bg);border:1px solid var(--border);color:var(--text2)}
+.bdg.g{background:var(--success-bg);color:var(--success-text);border-color:var(--success-border)}
+textarea{width:100%;border:none;resize:none;padding:11px;font-size:13px;line-height:1.65;font-family:var(--font);background:var(--bg);color:var(--text);outline:none;min-height:180px;display:block}
+.out{padding:11px;min-height:180px;font-size:13px;line-height:1.65;color:var(--text);white-space:pre-wrap;overflow-y:auto;max-height:420px}
+.ph{color:var(--text3);font-size:12px}
+
+/* ─── ACTION ROW ─── */
+.arow{display:flex;gap:7px;align-items:center;margin-bottom:5px}
+.brun{padding:7px 20px;font-size:13px;font-weight:600;background:var(--forest);color:#fff;border:none;border-radius:var(--r);cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:var(--font);transition:background .15s}
+.brun:hover{background:var(--forest2)}.brun:disabled{opacity:.4;cursor:not-allowed}
+.bsec{padding:6px 12px;font-size:12px;background:transparent;border:1px solid var(--border2);border-radius:var(--r);cursor:pointer;color:var(--text2);font-family:var(--font)}
+.bsec:hover{background:var(--bg2)}
+.bsm{padding:2px 8px;font-size:11px;background:transparent;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;color:var(--text2);font-family:var(--font)}
+.bsm:hover{background:var(--bg2)}
+.cc{font-size:11px;color:var(--text3);margin-left:auto}
+
+/* ─── STATUS ─── */
+.status{font-size:11px;color:var(--text2);padding:4px 0 0;display:flex;gap:6px;align-items:center}
+.sdot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.sdot.on{background:#22c55e}.sdot.rec{background:#ef4444;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.ld span{animation:bk 1.2s infinite}
+.ld span:nth-child(2){animation-delay:.2s}.ld span:nth-child(3){animation-delay:.4s}
+@keyframes bk{0%,100%{opacity:.15}50%{opacity:1}}
+
+/* ─── OUTPUT TAGS ─── */
+.ot{display:inline-block;font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;margin:0 3px 4px 0}
+.ot-b{background:var(--info-bg);color:var(--info-text)}
+.ot-a{background:var(--warn-bg);color:var(--warn-text)}
+.ot-g{background:var(--success-bg);color:var(--success-text)}
+.ot-gr{background:var(--bg2);color:var(--text2);border:1px solid var(--border)}
+
+/* ─── AUDIO ─── */
+.zone{border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:10px;background:var(--bg);box-shadow:var(--shadow)}
+.zhdr{padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.zbody{padding:16px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.dropz{width:100%;border:1.5px dashed var(--border2);border-radius:var(--r-lg);padding:20px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;text-align:center;transition:background .15s}
+.dropz:hover{background:var(--bg2)}
+.fbar{width:100%;background:var(--bg2);border-radius:var(--r);padding:8px 12px;display:flex;align-items:center;gap:9px;border:1px solid var(--border)}
+.fdets{flex:1}.fnm{font-size:12px;font-weight:500}.fsz{font-size:11px;color:var(--text2)}
+.ord{font-size:11px;color:var(--text3)}
+.recrow{display:flex;gap:7px;align-items:center}
+.brec{padding:6px 16px;font-size:12px;border:1px solid var(--border2);border-radius:var(--r);cursor:pointer;background:var(--bg);color:var(--text2);display:flex;align-items:center;gap:5px;font-family:var(--font)}
+.brec:hover{background:var(--bg2)}.brec.on{border-color:#ef4444;color:#ef4444}
+.rect{font-size:12px;color:var(--text2);font-variant-numeric:tabular-nums;min-width:34px}
+.wv{display:flex;align-items:center;gap:2px;height:14px}
+.wv span{width:3px;border-radius:2px;background:var(--border2);display:inline-block}
+.wv.on span{background:#22c55e;animation:wv 1s infinite}
+.wv span:nth-child(1){height:4px}.wv span:nth-child(2){height:9px;animation-delay:.1s}.wv span:nth-child(3){height:14px;animation-delay:.2s}.wv span:nth-child(4){height:7px;animation-delay:.3s}.wv span:nth-child(5){height:11px;animation-delay:.15s}
+@keyframes wv{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.3)}}
+.note{font-size:11px;color:var(--text3);text-align:center}
+
+/* ─── IMPORT ─── */
+.srccards{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:7px;margin-bottom:12px}
+.scard{border:1px solid var(--border);border-radius:var(--r);padding:11px 8px;cursor:pointer;text-align:center;transition:all .15s;background:var(--bg)}
+.scard:hover{background:var(--bg2)}.scard.sel{border-color:var(--forest3);background:var(--success-bg)}
+.si{display:none;flex-direction:column;gap:7px;margin-bottom:12px}.si.show{display:flex}
+.urlrow{display:flex;gap:7px}
+.urlinp{flex:1;height:32px;padding:0 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none;font-family:var(--font)}
+.urlinp:focus{border-color:var(--forest3)}
+.bfetch{height:32px;padding:0 13px;font-size:12px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);cursor:pointer;color:var(--text2);white-space:nowrap;font-family:var(--font)}
+.bfetch:hover{background:var(--bg3)}.bfetch:disabled{opacity:.4;cursor:not-allowed}
+.wdrop{width:100%;border:1.5px dashed var(--border2);border-radius:var(--r-lg);padding:18px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;text-align:center;transition:background .15s}
+.wdrop:hover{background:var(--bg2)}
+.docbox{border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:10px;background:var(--bg);box-shadow:var(--shadow)}
+.dochdr{padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.nbox{border-left:3px solid var(--forest3);padding:7px 11px;background:var(--success-bg);border-radius:0 var(--r) var(--r) 0;font-size:12px;color:var(--success-text)}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tl">
+    <div class="logo">IN</div>
+    <span class="brand">InEd Trilingual Tool</span>
+    <span class="brand-sub">Inclusive Education Foundation</span>
+  </div>
+  <div class="tr">
+    <div class="lpills">
+      <span class="lp">English</span>
+      <span class="lp">ภาษาไทย</span>
+      <span class="lp">မြန်မာ</span>
+    </div>
+    <button class="btn-hst" id="hbtn" onclick="toggleSB()">&#128338; History <span class="hcnt" id="hcnt">0</span></button>
+  </div>
+</div>
+
+<!-- API BANNER -->
+<div class="api-banner" id="apibanner">
+  <strong>API key required</strong> — Get yours free at
+  <a href="https://console.anthropic.com" target="_blank" style="color:var(--warn-text);font-weight:600;text-decoration:none">console.anthropic.com</a>
+  <div class="api-row">
+    <input class="api-inp" type="password" id="akinp" placeholder="sk-ant-…">
+    <button class="bsave" onclick="saveKey()">Save key</button>
+    <button class="bclr" onclick="clearKey()">Clear</button>
+  </div>
+</div>
+
+<!-- BODY -->
+<div class="body">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sb-top">
+      <span class="sb-title">&#128338; History</span>
+      <button class="btn-x" onclick="toggleSB()">&#10005;</button>
+    </div>
+    <div class="sb-srch"><input type="text" id="hsrch" placeholder="Search history…" oninput="renderH()"></div>
+    <div class="hlist" id="hlist"><div class="hempty">No history yet.<br>Run a task to see it here.</div></div>
+    <div class="sb-foot"><button class="bclrhist" onclick="clrHist()">&#128465; Clear all history</button></div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="mainwrap">
+    <div class="inner">
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab active" onclick="swTab('text')">&#9776; Text</button>
+        <button class="tab" onclick="swTab('audio')">&#127908; Audio</button>
+        <button class="tab" onclick="swTab('import')">&#8681; Import</button>
+      </div>
+
+      <!-- ══ TEXT TAB ══ -->
+      <div class="tab-panel active" id="p-text">
+        <div class="crow">
+          <div class="fg">
+            <label>Mode</label>
+            <div class="mtabs">
+              <button class="mt active" onclick="setMode('translate')">Translate</button>
+              <button class="mt" onclick="setMode('proofread')">Proofread</button>
+              <button class="mt" onclick="setMode('both')">Both</button>
+            </div>
+          </div>
+          <div class="fg" id="fg-from">
+            <label>From</label>
+            <select id="from-lang" onchange="updBadges()">
+              <option value="auto">Auto-detect</option>
+              <option value="English">English</option>
+              <option value="Thai">Thai</option>
+              <option value="Burmese">Burmese</option>
+            </select>
+          </div>
+          <button class="swap" id="swapbtn" onclick="swapLangs()" title="Swap">&#8646;</button>
+          <div class="fg" id="fg-to">
+            <label>To</label>
+            <select id="to-lang" onchange="updBadges()">
+              <option value="English">English</option>
+              <option value="Thai">Thai</option>
+              <option value="Burmese">Burmese</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Domain</label>
+            <select id="domain">
+              <option value="General">General</option>
+              <option value="Business / Professional">Business</option>
+              <option value="Academic / Research">Academic</option>
+              <option value="Legal">Legal</option>
+              <option value="Thai Government Official Letter">Thai Official Letter</option>
+            </select>
+          </div>
+        </div>
+        <div class="toggles">
+          <div class="tg" id="tg-grammar" onclick="togF('grammar')"><div class="tg-d"></div>Grammar</div>
+          <div class="tg" id="tg-pronunciation" onclick="togF('pronunciation')"><div class="tg-d"></div>Pronunciation</div>
+          <div class="tg" id="tg-explanation" onclick="togF('explanation')"><div class="tg-d"></div>Explain changes</div>
+          <div class="tg" id="tg-sidebyside" onclick="togF('sidebyside')"><div class="tg-d"></div>Side by side</div>
+        </div>
+        <div class="panels">
+          <div class="panel">
+            <div class="phdr"><span class="plbl">Input</span><span class="bdg" id="from-b">Auto-detect</span></div>
+            <textarea id="inp" placeholder="Paste or type your text here…" oninput="updCount()"></textarea>
+          </div>
+          <div class="panel">
+            <div class="phdr">
+              <span class="plbl">Output</span>
+              <div style="display:flex;gap:5px;align-items:center">
+                <span class="bdg g" id="to-b">English</span>
+                <button class="bsm" id="copybtn" onclick="copyOut()" style="display:none">&#128203; Copy</button>
+              </div>
+            </div>
+            <div class="out" id="outarea"><span class="ph">Result will appear here…</span></div>
+          </div>
+        </div>
+        <div class="arow">
+          <button class="brun" id="runbtn" onclick="runTask()">&#9654; Run</button>
+          <button class="bsec" onclick="clrText()">Clear</button>
+          <span class="cc" id="charcnt">0 characters</span>
+        </div>
+        <div class="status"><div class="sdot" id="tdot"></div><span id="tstat">Ready</span></div>
+      </div>
+
+      <!-- ══ AUDIO TAB ══ -->
+      <div class="tab-panel" id="p-audio">
+        <div class="crow">
+          <div class="fg"><label>Spoken language</label>
+            <select id="alang"><option value="auto">Auto-detect</option><option value="English">English</option><option value="Thai">Thai</option><option value="Burmese">Burmese</option></select>
+          </div>
+          <div class="fg"><label>Then translate to</label>
+            <select id="ato"><option value="none">No translation</option><option value="English">English</option><option value="Thai">Thai</option><option value="Burmese">Burmese</option></select>
+          </div>
+          <div class="fg"><label>Domain</label>
+            <select id="adom"><option value="General">General</option><option value="Business / Professional">Business</option><option value="Academic / Research">Academic</option></select>
+          </div>
+        </div>
+        <div class="zone">
+          <div class="zhdr"><span class="plbl">Audio input</span><div class="wv" id="wv"><span></span><span></span><span></span><span></span><span></span></div></div>
+          <div class="zbody">
+            <div class="dropz" id="adropz" onclick="document.getElementById('afile').click()" ondragover="e=>{e.preventDefault();this.style.background='var(--bg2)'}" ondragleave="this.style.background=''" ondrop="adrop(event)">
+              <div style="font-size:26px">&#127925;</div>
+              <p style="font-size:13px;color:var(--text2)">Upload audio or video file</p>
+              <small style="font-size:11px;color:var(--text3)">MP3 · WAV · MP4 · M4A · WEBM · max 25 MB</small>
+            </div>
+            <input type="file" id="afile" accept="audio/*,video/mp4,video/webm" style="display:none" onchange="asel(event)">
+            <div class="fbar" id="afbar" style="display:none">
+              <span style="font-size:17px">&#127925;</span>
+              <div class="fdets"><div class="fnm" id="afnm"></div><div class="fsz" id="afsz"></div></div>
+              <button class="btn-x" onclick="rmAud()">&#10005;</button>
+            </div>
+            <div class="ord">— or record live —</div>
+            <div class="recrow">
+              <button class="brec" id="recbtn" onclick="togRec()"><span id="recico">&#9210;</span>&nbsp;<span id="reclbl">Start recording</span></button>
+              <span class="rect" id="rectmr"></span>
+            </div>
+            <p class="note">Live recording works best in Chrome / Edge</p>
+          </div>
+        </div>
+        <div class="zone">
+          <div class="zhdr"><span class="plbl">Transcribed text</span><button class="bsm" onclick="trToTxt()">Send to text tab &#8599;</button></div>
+          <textarea id="transcript" placeholder="Transcription appears here — edit before processing if needed…" style="min-height:80px"></textarea>
+        </div>
+        <div class="panels" id="aoutpanels" style="display:none">
+          <div class="panel"><div class="phdr"><span class="plbl">Transcript</span><span class="bdg" id="afb">—</span></div><div class="out" id="atout"></div></div>
+          <div class="panel"><div class="phdr"><span class="plbl">Translation</span><span class="bdg g" id="atb">—</span></div><div class="out" id="atrans"><span class="ph">Translation will appear here…</span></div></div>
+        </div>
+        <div class="arow">
+          <button class="brun" id="arunbtn" onclick="runAudio()">&#9654; Process</button>
+          <button class="bsec" onclick="clrAudio()">Clear</button>
+        </div>
+        <div class="status"><div class="sdot" id="adot"></div><span id="astat">Ready — upload a file or record audio</span></div>
+      </div>
+
+      <!-- ══ IMPORT TAB ══ -->
+      <div class="tab-panel" id="p-import">
+        <div class="srccards">
+          <div class="scard" id="sc-gdoc" onclick="selSrc('gdoc')"><div style="font-size:20px;margin-bottom:3px">&#128196;</div><div style="font-size:12px;font-weight:600">Google Doc</div><div style="font-size:11px;color:var(--text3);margin-top:1px">Paste link</div></div>
+          <div class="scard" id="sc-gsheet" onclick="selSrc('gsheet')"><div style="font-size:20px;margin-bottom:3px">&#128202;</div><div style="font-size:12px;font-weight:600">Google Sheet</div><div style="font-size:11px;color:var(--text3);margin-top:1px">Paste link</div></div>
+          <div class="scard" id="sc-gdrive" onclick="selSrc('gdrive')"><div style="font-size:20px;margin-bottom:3px">&#128193;</div><div style="font-size:12px;font-weight:600">Google Drive</div><div style="font-size:11px;color:var(--text3);margin-top:1px">Paste link</div></div>
+          <div class="scard" id="sc-word" onclick="selSrc('word')"><div style="font-size:20px;margin-bottom:3px">&#128462;</div><div style="font-size:12px;font-weight:600">Word file</div><div style="font-size:11px;color:var(--text3);margin-top:1px">.docx upload</div></div>
+        </div>
+        <div class="si" id="si-google">
+          <div class="urlrow">
+            <input class="urlinp" id="gurl" placeholder="Paste Google Doc, Sheet, or Drive link…">
+            <button class="bfetch" id="fbtn" onclick="fetchG()">&#8659; Fetch</button>
+          </div>
+          <div class="nbox">Set the file to "Anyone with the link can view" in Google before fetching.</div>
+        </div>
+        <div class="si" id="si-word">
+          <div class="wdrop" id="wdropel" onclick="document.getElementById('wfile').click()" ondragover="e=>{e.preventDefault();this.style.background='var(--bg2)'}" ondragleave="this.style.background=''" ondrop="wdropF(event)">
+            <div style="font-size:22px">&#128462;</div>
+            <p style="font-size:13px;color:var(--text2)">Click or drag a .docx file here</p>
+            <small style="font-size:11px;color:var(--text3)">Word 2007 and later</small>
+          </div>
+          <input type="file" id="wfile" accept=".docx" style="display:none" onchange="wsel(event)">
+          <div class="fbar" id="wfbar" style="display:none">
+            <span style="font-size:17px">&#128462;</span>
+            <div class="fdets"><div class="fnm" id="wfnm"></div><div class="fsz" id="wfsz"></div></div>
+            <button class="btn-x" onclick="rmWord()">&#10005;</button>
+          </div>
+        </div>
+        <div class="docbox" id="docbox" style="display:none">
+          <div class="dochdr"><span class="plbl" id="doclbl">Imported content</span><button class="bsm" onclick="impToTxt()">Send to text tab &#8599;</button></div>
+          <div class="out" id="docprev" style="max-height:120px;font-size:12px;color:var(--text2)"></div>
+        </div>
+        <div id="docctrl" style="display:none">
+          <div class="crow">
+            <div class="fg"><label>Action</label>
+              <div class="mtabs">
+                <button class="mt active" onclick="setDM('translate')">Translate</button>
+                <button class="mt" onclick="setDM('proofread')">Proofread</button>
+                <button class="mt" onclick="setDM('both')">Both</button>
+              </div>
+            </div>
+            <div class="fg"><label>From</label><select id="dfrom"><option value="auto">Auto-detect</option><option value="English">English</option><option value="Thai">Thai</option><option value="Burmese">Burmese</option></select></div>
+            <div class="fg" id="dtog"><label>To</label><select id="dto"><option value="English">English</option><option value="Thai">Thai</option><option value="Burmese">Burmese</option></select></div>
+            <div class="fg"><label>Domain</label><select id="ddom"><option value="General">General</option><option value="Business / Professional">Business</option><option value="Academic / Research">Academic</option><option value="Legal">Legal</option></select></div>
+          </div>
+          <div class="arow" style="margin-bottom:10px">
+            <button class="brun" id="drunbtn" onclick="runDoc()">&#9654; Process document</button>
+          </div>
+          <div class="panel" id="doutpanel" style="display:none">
+            <div class="phdr"><span class="plbl">Result</span><span class="bdg g" id="doutb">—</span></div>
+            <div class="out" id="dout" style="max-height:340px"><span class="ph">Result will appear here…</span></div>
+          </div>
+        </div>
+        <div class="status"><div class="sdot" id="idot"></div><span id="istat">Choose a source above to get started</span></div>
+      </div>
+
+    </div><!-- /inner -->
+  </div><!-- /main -->
+</div><!-- /body -->
+
+<script>
+let apiKey=localStorage.getItem('ined_ak')||'';
+let mode='translate',dmode='translate';
+let feats={grammar:false,pronunciation:false,explanation:false,sidebyside:false};
+let impTxt='',impTitle='';
+let audioFile=null,recog=null,isRec=false,recTmr=null,recS=0,liveT='';
+let activeSrc=null,sbOpen=false,activeHid=null;
+let hist=JSON.parse(localStorage.getItem('ined_hist')||'[]');
+
+function init(){if(apiKey)document.getElementById('apibanner').classList.add('hidden');renderH();updHC();}
+
+// API KEY
+function saveKey(){const v=document.getElementById('akinp').value.trim();if(!v)return;apiKey=v;localStorage.setItem('ined_ak',v);document.getElementById('apibanner').classList.add('hidden');setS('t','on','API key saved — ready');}
+function clearKey(){apiKey='';localStorage.removeItem('ined_ak');document.getElementById('akinp').value='';document.getElementById('apibanner').classList.remove('hidden');}
+
+// HISTORY
+function saveH(e){e.id=Date.now();e.time=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});e.date=new Date().toLocaleDateString([],{month:'short',day:'numeric'});hist.unshift(e);if(hist.length>100)hist=hist.slice(0,100);localStorage.setItem('ined_hist',JSON.stringify(hist));renderH();updHC();}
+function renderH(){
+  const q=(document.getElementById('hsrch').value||'').toLowerCase();
+  const L=document.getElementById('hlist');
+  const f=hist.filter(h=>!q||[h.inputPreview,h.mode,h.fromLang,h.toLang].some(x=>x?.toLowerCase().includes(q)));
+  if(!f.length){L.innerHTML='<div class="hempty">'+(q?'No results for "'+x(q)+'"':'No history yet.<br>Run a task to see it here.')+'</div>';return;}
+  L.innerHTML=f.map(h=>`<div class="hi${h.id===activeHid?' active':''}" onclick="loadH(${h.id})"><div class="hi-top"><span class="hi-mode">${x(h.mode)}</span><span class="hi-time">${h.date} ${h.time}</span></div><div class="hi-langs">${x(h.fromLang||'')} → ${x(h.toLang||'')} · ${x(h.domain||'')}</div><div class="hi-prev">${x(h.inputPreview||'')}</div></div>`).join('');
+}
+function loadH(id){
+  const h=hist.find(e=>e.id===id);if(!h)return;activeHid=id;swTab('text');
+  document.getElementById('inp').value=h.input||'';
+  document.getElementById('outarea').innerHTML=h.output?fmtO(h.output):'<span class="ph">No output saved</span>';
+  document.getElementById('copybtn').style.display=h.output?'':'none';
+  setMode(h.modeVal||'translate');
+  document.getElementById('from-lang').value=h.fromLangVal||'auto';
+  document.getElementById('to-lang').value=h.toLangVal||'English';
+  document.getElementById('domain').value=h.domainVal||'General';
+  updBadges();updCount();setS('t','on','Loaded from history');renderH();
+  if(window.innerWidth<700)toggleSB();
+}
+function clrHist(){if(!confirm('Clear all history?'))return;hist=[];activeHid=null;localStorage.removeItem('ined_hist');renderH();updHC();}
+function updHC(){document.getElementById('hcnt').textContent=hist.length;}
+function toggleSB(){
+  sbOpen=!sbOpen;
+  document.getElementById('sidebar').classList.toggle('open',sbOpen);
+  document.getElementById('hbtn').classList.toggle('on',sbOpen);
+  document.getElementById('mainwrap').style.marginLeft=sbOpen&&window.innerWidth>700?'268px':'0';
+}
+
+// TABS
+function swTab(t){
+  ['text','audio','import'].forEach((n,i)=>{
+    document.querySelectorAll('.tab')[i].classList.toggle('active',n===t);
+    document.getElementById('p-'+n).classList.toggle('active',n===t);
+  });
+}
+
+// TEXT
+function setMode(m){
+  mode=m;
+  document.querySelectorAll('#p-text .mt').forEach((t,i)=>t.classList.toggle('active',['translate','proofread','both'][i]===m));
+  const off=m==='proofread';
+  ['fg-from','fg-to','swapbtn'].forEach(id=>{const el=document.getElementById(id);el.style.opacity=off?'0.4':'';el.style.pointerEvents=off?'none':'';});
+}
+function togF(f){feats[f]=!feats[f];document.getElementById('tg-'+f).classList.toggle('on',feats[f]);}
+function swapLangs(){const f=document.getElementById('from-lang'),t=document.getElementById('to-lang');if(f.value==='auto')return;const tmp=f.value;f.value=t.value;t.value=tmp;updBadges();}
+function updBadges(){const fv=document.getElementById('from-lang').value,tv=document.getElementById('to-lang').value;document.getElementById('from-b').textContent=fv==='auto'?'Auto-detect':fv;document.getElementById('to-b').textContent=tv;}
+function updCount(){const n=document.getElementById('inp').value.length;document.getElementById('charcnt').textContent=n+' character'+(n===1?'':'s');}
+function clrText(){document.getElementById('inp').value='';document.getElementById('outarea').innerHTML='<span class="ph">Result will appear here…</span>';document.getElementById('copybtn').style.display='none';activeHid=null;updCount();setS('t','','Ready');}
+function copyOut(){navigator.clipboard.writeText(document.getElementById('outarea').innerText).then(()=>setS('t','on','Copied!'));}
+
+// STATUS
+function setS(tab,state,msg){
+  const m={t:['tdot','tstat'],a:['adot','astat'],i:['idot','istat']};
+  const[d,s]=m[tab];
+  document.getElementById(d).className='sdot'+(state==='on'?' on':state==='rec'?' rec':'');
+  document.getElementById(s).innerHTML=state==='loading'?msg+' <span class="ld"><span>.</span><span>.</span><span>.</span></span>':msg;
+}
+
+// API
+async function api(prompt,extra){
+  if(!apiKey)throw new Error('No API key — please enter your key at the top');
+  const content=extra||[{type:'text',text:prompt}];
+  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:[{role:'user',content}]})});
+  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||'API error '+res.status);}
+  return(await res.json()).content?.find(b=>b.type==='text')?.text||'';
+}
+
+// PROMPT
+function mkP(text,m,from,to,domain){
+  m=m||mode;from=from||document.getElementById('from-lang').value;to=to||document.getElementById('to-lang').value;domain=domain||document.getElementById('domain').value;
+  const fl=Object.entries(feats).filter(([,v])=>v).map(([k])=>k);
+  const task=m==='translate'?`Translate from ${from==='auto'?'auto-detected language':from} to ${to}.`:m==='proofread'?`Proofread and correct (keep same language).`:`Both proofread AND translate from ${from==='auto'?'auto-detected language':from} to ${to}.`;
+  return `Expert translator/proofreader for English, Thai, Burmese. Domain:"${domain}".\nTask: ${task}${fl.length?'\nActive features: '+fl.join(', ')+'. Include sections.':''}\nFormat: Start with 🌐 Translation [source→target] or ✅ Proofread. Grammar: Original→Corrected:Reason. 📖 pronunciation, 💡 explanations, side-by-side table if asked. Legal needs disclaimer. Proofread: 📊 Writing Level. Unicode Burmese only.\nText:\n"""\n${text}\n"""`;
+}
+
+// FORMAT
+function fmtO(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/(🌐 Translation[^\n]*)/g,'<span class="ot ot-b">$1</span>').replace(/(✅[^\n]*)/g,'<span class="ot ot-a">$1</span>').replace(/(📖[^\n]*)/g,'<span class="ot ot-gr">$1</span>').replace(/(✏️[^\n]*)/g,'<span class="ot ot-a">$1</span>').replace(/(💡[^\n]*)/g,'<span class="ot ot-g">$1</span>').replace(/(📊[^\n]*)/g,'<span class="ot ot-gr">$1</span>').replace(/(🎙[^\n]*)/g,'<span class="ot ot-gr">$1</span>').replace(/\n/g,'<br>');}
+function x(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// RUN TEXT
+async function runTask(){
+  const text=document.getElementById('inp').value.trim();if(!text)return;
+  const from=document.getElementById('from-lang').value,to=document.getElementById('to-lang').value,domain=document.getElementById('domain').value;
+  document.getElementById('runbtn').disabled=true;setS('t','loading','Processing');
+  document.getElementById('outarea').innerHTML='<span class="ph"><span class="ld"><span>.</span><span>.</span><span>.</span></span></span>';
+  document.getElementById('copybtn').style.display='none';
+  try{
+    const r=await api(mkP(text));
+    document.getElementById('outarea').innerHTML=fmtO(r);document.getElementById('copybtn').style.display='';setS('t','on','Done');
+    const ml=mode==='translate'?'Translate':mode==='proofread'?'Proofread':'Both';
+    saveH({mode:ml,modeVal:mode,fromLang:from==='auto'?'Auto':from,toLang:to,fromLangVal:from,toLangVal:to,domain,domainVal:domain,input:text,output:r,inputPreview:text.substring(0,80)+(text.length>80?'…':'')});
+    activeHid=hist[0]?.id;renderH();
+  }catch(e){document.getElementById('outarea').innerHTML='<span style="color:var(--danger)">'+x(e.message)+'</span>';setS('t','','Error — check API key');}
+  finally{document.getElementById('runbtn').disabled=false;}
+}
+
+// AUDIO
+function adrop(e){e.preventDefault();document.getElementById('adropz').style.background='';const f=e.dataTransfer.files[0];if(f)setAF(f);}
+function asel(e){const f=e.target.files[0];if(f)setAF(f);}
+function setAF(f){if(f.size>25*1024*1024){alert('File must be under 25 MB.');return;}audioFile=f;document.getElementById('adropz').style.display='none';document.getElementById('afbar').style.display='flex';document.getElementById('afnm').textContent=f.name;document.getElementById('afsz').textContent=(f.size/1024/1024).toFixed(2)+' MB';setS('a','','File loaded — click Process');}
+function rmAud(){audioFile=null;document.getElementById('adropz').style.display='';document.getElementById('afbar').style.display='none';document.getElementById('afile').value='';}
+function togRec(){if(isRec)stopRec();else startRec();}
+function startRec(){
+  if(!('webkitSpeechRecognition'in window||'SpeechRecognition'in window)){alert('Live recording requires Chrome or Edge.');return;}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;recog=new SR();
+  recog.lang={English:'en-US',Thai:'th-TH',Burmese:'my-MM',auto:'en-US'}[document.getElementById('alang').value]||'en-US';
+  recog.continuous=true;recog.interimResults=true;liveT='';
+  recog.onresult=e=>{let it='';for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)liveT+=e.results[i][0].transcript+' ';else it+=e.results[i][0].transcript;}document.getElementById('transcript').value=liveT+it;};
+  recog.onerror=e=>{stopRec();setS('a','','Mic error: '+e.error);};
+  recog.start();isRec=true;recS=0;
+  document.getElementById('recbtn').classList.add('on');document.getElementById('recico').textContent='⏹';document.getElementById('reclbl').textContent='Stop recording';document.getElementById('wv').classList.add('on');setS('a','rec','Recording…');
+  recTmr=setInterval(()=>{recS++;const m=Math.floor(recS/60),s=String(recS%60).padStart(2,'0');document.getElementById('rectmr').textContent=m+':'+s;},1000);
+}
+function stopRec(){if(recog){recog.stop();recog=null;}isRec=false;clearInterval(recTmr);document.getElementById('recbtn').classList.remove('on');document.getElementById('recico').textContent='⏺';document.getElementById('reclbl').textContent='Start recording';document.getElementById('rectmr').textContent='';document.getElementById('wv').classList.remove('on');setS('a','',document.getElementById('transcript').value.trim()?'Done — click Process':'No speech detected');}
+function trToTxt(){const t=document.getElementById('transcript').value.trim();if(!t)return;document.getElementById('inp').value=t;updCount();swTab('text');}
+function clrAudio(){rmAud();document.getElementById('transcript').value='';document.getElementById('aoutpanels').style.display='none';liveT='';setS('a','','Ready');}
+async function runAudio(){
+  const tr=document.getElementById('transcript').value.trim();if(!tr&&!audioFile){setS('a','','Please upload a file or record audio first');return;}
+  document.getElementById('arunbtn').disabled=true;
+  const lang=document.getElementById('alang').value,to=document.getElementById('ato').value,dom=document.getElementById('adom').value;
+  setS('a','loading','Processing');
+  const text=tr||'[uploaded audio]';
+  const p=`Expert translator for English, Thai, Burmese. Domain:"${dom}". Spoken language:${lang==='auto'?'auto-detect':lang}.\n${to!=='none'?'Translate to '+to+'.':'Clean up transcript only.'}\nUnicode Burmese only.\nFormat:\n🎙 Transcript [language]\n[transcript]\n${to!=='none'?'\n🌐 Translation [source → '+to+']\n[translation]':''}\nTranscript:"""${text}"""`;
+  try{
+    const r=await api(p);const pts=r.split(/(?=🌐)/);
+    document.getElementById('aoutpanels').style.display='grid';
+    document.getElementById('atout').innerHTML=fmtO(pts[0]||r);
+    document.getElementById('atrans').innerHTML=pts[1]?fmtO(pts[1]):'<span class="ph">No translation requested</span>';
+    document.getElementById('afb').textContent=lang==='auto'?'Auto-detect':lang;
+    document.getElementById('atb').textContent=to==='none'?'—':to;setS('a','on','Done');
+    saveH({mode:'Audio',modeVal:'translate',fromLang:lang==='auto'?'Auto':lang,toLang:to==='none'?'—':to,fromLangVal:lang,toLangVal:to,domain:dom,domainVal:dom,input:text,output:r,inputPreview:text.substring(0,80)+(text.length>80?'…':'')});renderH();
+  }catch(e){setS('a','','Error: '+x(e.message));}
+  finally{document.getElementById('arunbtn').disabled=false;}
+}
+
+// IMPORT
+function selSrc(src){
+  activeSrc=src;document.querySelectorAll('.scard').forEach(c=>c.classList.remove('sel'));document.getElementById('sc-'+src).classList.add('sel');
+  document.getElementById('si-google').classList.remove('show');document.getElementById('si-word').classList.remove('show');
+  if(src==='word')document.getElementById('si-word').classList.add('show');
+  else{document.getElementById('si-google').classList.add('show');const h={gdoc:'Paste your Google Doc link…',gsheet:'Paste your Google Sheet link…',gdrive:'Paste your Google Drive file link…'};document.getElementById('gurl').placeholder=h[src]||'Paste Google link…';}
+  document.getElementById('docbox').style.display='none';document.getElementById('docctrl').style.display='none';setS('i','','Ready to import');
+}
+function exId(url){const ps=[/\/document\/d\/([a-zA-Z0-9_-]+)/,/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/,/\/file\/d\/([a-zA-Z0-9_-]+)/,/id=([a-zA-Z0-9_-]+)/,/\/d\/([a-zA-Z0-9_-]+)/];for(const p of ps){const m=url.match(p);if(m)return m[1];}return null;}
+async function fetchG(){
+  const url=document.getElementById('gurl').value.trim();if(!url){setS('i','','Paste a Google link first');return;}
+  const id=exId(url);if(!id){setS('i','','Could not read file ID — check the link');return;}
+  document.getElementById('fbtn').disabled=true;setS('i','loading','Fetching from Google');
+  try{
+    const res=await fetch(`https://docs.google.com/document/d/${id}/export?format=txt`);
+    if(!res.ok)throw new Error('Could not fetch — set file to "Anyone with the link can view"');
+    showImp((await res.text()).trim(),'Google Doc','Google Doc');setS('i','on','Imported successfully');
+  }catch(e){setS('i','','Error: '+e.message);}
+  finally{document.getElementById('fbtn').disabled=false;}
+}
+function showImp(text,title,src){impTxt=text;impTitle=title;document.getElementById('docbox').style.display='block';document.getElementById('doclbl').textContent=src+': '+title;document.getElementById('docprev').textContent=text.substring(0,500)+(text.length>500?'\n\n[…'+text.length+' chars total]':'');document.getElementById('docctrl').style.display='block';document.getElementById('doutpanel').style.display='none';}
+function impToTxt(){if(!impTxt)return;document.getElementById('inp').value=impTxt;updCount();swTab('text');}
+function setDM(m){dmode=m;document.querySelectorAll('#docctrl .mt').forEach((t,i)=>t.classList.toggle('active',['translate','proofread','both'][i]===m));const off=m==='proofread';document.getElementById('dtog').style.opacity=off?'0.4':'';document.getElementById('dtog').style.pointerEvents=off?'none':'';}
+async function runDoc(){
+  if(!impTxt){setS('i','','No content imported yet');return;}
+  document.getElementById('drunbtn').disabled=true;
+  const from=document.getElementById('dfrom').value,to=document.getElementById('dto').value,dom=document.getElementById('ddom').value;
+  setS('i','loading','Processing document');document.getElementById('doutpanel').style.display='block';document.getElementById('dout').innerHTML='<span class="ph"><span class="ld"><span>.</span><span>.</span><span>.</span></span></span>';
+  try{
+    const r=await api(mkP(impTxt,dmode,from,to,dom));
+    document.getElementById('dout').innerHTML=fmtO(r);document.getElementById('doutb').textContent=dmode==='proofread'?from:to;setS('i','on','Done');
+    saveH({mode:dmode==='translate'?'Translate':dmode==='proofread'?'Proofread':'Both',modeVal:dmode,fromLang:from==='auto'?'Auto':from,toLang:to,fromLangVal:from,toLangVal:to,domain:dom,domainVal:dom,input:impTxt,output:r,inputPreview:(impTitle+': '+impTxt).substring(0,80)+'…'});renderH();
+  }catch(e){document.getElementById('dout').innerHTML='<span style="color:var(--danger)">'+x(e.message)+'</span>';setS('i','','Error');}
+  finally{document.getElementById('drunbtn').disabled=false;}
+}
+
+// WORD
+function wdropF(e){e.preventDefault();const f=e.dataTransfer.files[0];if(f)procW(f);}
+function wsel(e){const f=e.target.files[0];if(f)procW(f);}
+function rmWord(){document.getElementById('wdropel').style.display='';document.getElementById('wfbar').style.display='none';document.getElementById('wfile').value='';document.getElementById('docbox').style.display='none';document.getElementById('docctrl').style.display='none';}
+async function procW(f){
+  if(!f.name.toLowerCase().endsWith('.docx')){alert('Please upload a .docx file.');return;}
+  document.getElementById('wdropel').style.display='none';document.getElementById('wfbar').style.display='flex';document.getElementById('wfnm').textContent=f.name;document.getElementById('wfsz').textContent=(f.size/1024/1024).toFixed(2)+' MB';setS('i','loading','Reading Word file');
+  try{
+    if(typeof mammoth==='undefined')await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+    const ab=await f.arrayBuffer();const r=await mammoth.extractRawText({arrayBuffer:ab});
+    const text=r.value.trim();if(!text)throw new Error('No text found');
+    showImp(text,f.name,'Word document');setS('i','on','Word file imported');
+  }catch(e){setS('i','','Could not read file: '+e.message);}
+}
+
+init();
+</script>
+</body>
+</html>
